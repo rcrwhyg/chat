@@ -2,12 +2,16 @@ mod config;
 mod error;
 mod handlers;
 mod models;
+mod utils;
 
-pub use error::AppError;
+use anyhow::Context;
+pub use error::{AppError, ErrorOutput};
 pub use models::User;
 
 use handlers::*;
-use std::{ops::Deref, sync::Arc};
+use sqlx::PgPool;
+use std::{fmt, ops::Deref, sync::Arc};
+use utils::{DecodingKey, EncodingKey};
 
 use axum::{
     routing::{get, patch, post},
@@ -22,13 +26,15 @@ pub(crate) struct AppState {
 }
 
 #[allow(unused)]
-#[derive(Debug)]
 pub(crate) struct AppStateInner {
     pub(crate) config: AppConfig,
+    pub(crate) ek: EncodingKey,
+    pub(crate) dk: DecodingKey,
+    pub(crate) pool: PgPool,
 }
 
-pub fn get_router(config: AppConfig) -> Router {
-    let state = AppState::new(config);
+pub async fn get_router(config: AppConfig) -> Result<Router, AppError> {
+    let state = AppState::try_new(config).await?;
 
     let api = Router::new()
         .route("/signin", post(signin_handler))
@@ -42,10 +48,12 @@ pub fn get_router(config: AppConfig) -> Router {
         )
         .route("/chat/:id/messages", get(list_message_handler));
 
-    Router::new()
+    let app = Router::new()
         .route("/", get(index_handler))
         .nest("/api", api)
-        .with_state(state)
+        .with_state(state);
+
+    Ok(app)
 }
 
 // 调用 state.config => state.inner.config
@@ -58,9 +66,57 @@ impl Deref for AppState {
 }
 
 impl AppState {
-    pub fn new(config: AppConfig) -> Self {
-        Self {
-            inner: Arc::new(AppStateInner { config }),
-        }
+    pub async fn try_new(config: AppConfig) -> Result<Self, AppError> {
+        let ek = EncodingKey::load(&config.auth.sk).context("Failed to load private key")?;
+        let dk = DecodingKey::load(&config.auth.pk).context("Failed to load public key")?;
+        let pool = PgPool::connect(&config.server.db_url)
+            .await
+            .context("Failed to connect to database")?;
+        Ok(Self {
+            inner: Arc::new(AppStateInner {
+                config,
+                ek,
+                dk,
+                pool,
+            }),
+        })
+    }
+}
+
+impl fmt::Debug for AppStateInner {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("AppStateInner")
+            .field("config", &self.config)
+            .finish()
+    }
+}
+
+#[cfg(test)]
+impl AppState {
+    #[allow(unused)]
+    #[cfg(test)]
+    pub async fn try_new_for_test(
+        config: AppConfig,
+    ) -> Result<(sqlx_db_tester::TestPg, Self), AppError> {
+        use sqlx_db_tester::TestPg;
+        use std::path::Path;
+
+        let ek = EncodingKey::load(&config.auth.sk).context("Failed to load private key")?;
+        let dk = DecodingKey::load(&config.auth.pk).context("Failed to load public key")?;
+        let server_url = config.server.db_url.split('/').next().unwrap();
+        let tdb = TestPg::new(server_url.to_string(), Path::new("../migrations"));
+        let pool = tdb.get_pool().await;
+
+        Ok((
+            tdb,
+            Self {
+                inner: Arc::new(AppStateInner {
+                    config,
+                    ek,
+                    dk,
+                    pool,
+                }),
+            },
+        ))
     }
 }

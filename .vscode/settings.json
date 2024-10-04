@@ -3,7 +3,10 @@
         "alon",
         "chrono",
         "fullname",
+        "genpkey",
         "Hasher",
+        "pkey",
+        "pubout",
         "signin",
         "sqlx"
     ]
