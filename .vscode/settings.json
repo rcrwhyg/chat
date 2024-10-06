@@ -5,8 +5,10 @@
         "fullname",
         "genpkey",
         "Hasher",
+        "oneshot",
         "pkey",
         "pubout",
+        "rfind",
         "signin",
         "sqlx"
     ]

@@ -431,6 +431,7 @@ dependencies = [
  "argon2",
  "axum",
  "axum-extra",
+ "chat-server",
  "chrono",
  "http-body-util",
  "jwt-simple",
