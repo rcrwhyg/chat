@@ -10,6 +10,7 @@ Content-Type: application/json
 
 
 ### signin user (valid)
+# @name signin
 POST http://localhost:6688/api/signin
 Content-Type: application/json
 
@@ -17,6 +18,8 @@ Content-Type: application/json
     "email": "test@gmail.com",
     "password": "12345678"
 }
+
+@token = {{signin.response.body.token}}
 
 ### signin user (invalid)
 POST http://localhost:6688/api/signin
@@ -26,3 +29,7 @@ Content-Type: application/json
     "email": "test1@gmail.com",
     "password": "12345678"
 }
+
+### get chat list
+GET http://localhost:6688/api/chat
+Authorization: Bearer {{token}}
