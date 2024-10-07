@@ -60,7 +60,7 @@ mod tests {
         let email = "rcrwhyg@sina.com";
         let full_name = "Lyn Wong";
         let password = "hunter42";
-        let input = CreateUser::new(email, full_name, password);
+        let input = CreateUser::new("Default Workspace", email, full_name, password);
 
         let ret = signup_handler(State(state), Json(input))
             .await?
@@ -83,7 +83,7 @@ mod tests {
         let email = "rcrwhyg@sina.com";
         let full_name = "Lyn Wong";
         let password = "hunter42";
-        let input = CreateUser::new(email, full_name, password);
+        let input = CreateUser::new("Default Workspace", email, full_name, password);
 
         signup_handler(State(state.clone()), Json(input.clone())).await?;
 
@@ -107,7 +107,7 @@ mod tests {
         let email = "rcrwhyg@sina.com";
         let full_name = "Lyn Wong";
         let password = "hunter42";
-        let user = CreateUser::new(email, full_name, password);
+        let user = CreateUser::new("Default Workspace", email, full_name, password);
         User::create(&user, &state.pool).await?;
         let input = SigninUser::new(email, password);
 

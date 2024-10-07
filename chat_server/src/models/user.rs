@@ -9,10 +9,13 @@ use sqlx::PgPool;
 
 use crate::{AppError, User};
 
+use super::{ChatUser, Workspace};
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateUser {
     pub full_name: String,
     pub email: String,
+    pub workspace: String,
     pub password: String,
 }
 
@@ -25,31 +28,65 @@ pub struct SigninUser {
 impl User {
     /// Find a user by email
     pub async fn find_by_email(email: &str, pool: &PgPool) -> Result<Option<Self>, AppError> {
-        let user =
-            sqlx::query_as("SELECT id, full_name, email, created_at FROM users WHERE email = $1")
-                .bind(email)
-                .fetch_optional(pool)
-                .await?;
+        let user = sqlx::query_as(
+            "SELECT id, ws_id, full_name, email, created_at FROM users WHERE email = $1",
+        )
+        .bind(email)
+        .fetch_optional(pool)
+        .await?;
 
         Ok(user)
     }
 
     /// Create a new user
+    // TODO: use transaction for workspace creation and user creation
     pub async fn create(input: &CreateUser, pool: &PgPool) -> Result<Self, AppError> {
-        let password_hash = hash_password(&input.password)?;
-
         // check if email exists
         let user = Self::find_by_email(&input.email, pool).await?;
         if user.is_some() {
             return Err(AppError::EmailAlreadyExists(input.email.clone()));
         }
 
-        let user = sqlx::query_as(
-            "INSERT INTO users (email, full_name, password_hash) VALUES ($1, $2, $3) RETURNING id, full_name, email, created_at",
+        // check if workspace exists, if not create one
+        let ws = match Workspace::find_by_name(&input.workspace, pool).await? {
+            Some(ws) => ws,
+            None => Workspace::create(&input.workspace, 0, pool).await?,
+        };
+
+        let password_hash = hash_password(&input.password)?;
+        let user: User = sqlx::query_as(
+            r#"
+            INSERT INTO users (ws_id, email, full_name, password_hash)
+            VALUES ($1, $2, $3, $4)
+            RETURNING id, ws_id, full_name, email, created_at
+            "#,
         )
+        .bind(ws.id)
         .bind(&input.email)
         .bind(&input.full_name)
         .bind(password_hash)
+        .fetch_one(pool)
+        .await?;
+
+        if ws.owner_id == 0 {
+            ws.update_owner(user.id as _, pool).await?;
+        }
+
+        Ok(user)
+    }
+
+    /// add user to workspace
+    pub async fn add_to_workspace(&self, ws_id: i64, pool: &PgPool) -> Result<User, AppError> {
+        let user = sqlx::query_as(
+            r#"
+            UPDATE users
+            SET ws_id = $1
+            WHERE id = $2 and ws_id = 0
+            RETURNING id, ws_id, full_name, email, created_at
+            "#,
+        )
+        .bind(ws_id)
+        .bind(self.id)
         .fetch_one(pool)
         .await?;
 
@@ -59,7 +96,7 @@ impl User {
     /// Verify email and password
     pub async fn verify(input: &SigninUser, pool: &PgPool) -> Result<Option<Self>, AppError> {
         let user: Option<User> = sqlx::query_as(
-            "SELECT id, full_name, email, password_hash, created_at FROM users WHERE email = $1",
+            "SELECT id, ws_id, full_name, email, password_hash, created_at FROM users WHERE email = $1",
         )
         .bind(&input.email)
         .fetch_optional(pool)
@@ -79,6 +116,10 @@ impl User {
             None => Ok(None),
         }
     }
+}
+
+impl ChatUser {
+    // todo
 }
 
 fn hash_password(password: &str) -> Result<String, AppError> {
@@ -113,6 +154,7 @@ impl User {
         use chrono::Utc;
         Self {
             id,
+            ws_id: 0,
             full_name,
             email,
             password_hash: None,
@@ -123,10 +165,11 @@ impl User {
 
 #[cfg(test)]
 impl CreateUser {
-    pub fn new(email: &str, full_name: &str, password: &str) -> Self {
+    pub fn new(ws: &str, email: &str, full_name: &str, password: &str) -> Self {
         Self {
             email: email.to_string(),
             full_name: full_name.to_string(),
+            workspace: ws.to_string(),
             password: password.to_string(),
         }
     }
@@ -171,7 +214,7 @@ mod tests {
         let email = "rcrwhyg@sina.com";
         let full_name = "Lyn Wong";
         let password = "hunter42";
-        let input = CreateUser::new(email, full_name, password);
+        let input = CreateUser::new("Default Workspace", email, full_name, password);
         User::create(&input, &pool).await?;
 
         let ret = User::create(&input, &pool).await;
@@ -197,7 +240,7 @@ mod tests {
         let email = "rcrwhyg@sina.com";
         let full_name = "Lyn Wong";
         let password = "hunter42";
-        let input = CreateUser::new(email, full_name, password);
+        let input = CreateUser::new("Default Workspace", email, full_name, password);
         let user = User::create(&input, &pool).await?;
         assert_eq!(user.email, email);
         assert_eq!(user.full_name, full_name);

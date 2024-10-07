@@ -1,11 +1,11 @@
 -- Add migration script here
 -- create user table
 CREATE TABLE IF NOT EXISTS users (
-    id BIGSERIAL PRIMARY KEY,
-    full_name VARCHAR(64) NOT NULL,
-    email VARCHAR(64) NOT NULL,
+    id bigserial PRIMARY KEY,
+    full_name varchar(64) NOT NULL,
+    email varchar(64) NOT NULL,
     -- hashed argon2 password
-    password_hash VARCHAR(97) NOT NULL,
+    password_hash varchar(97) NOT NULL,
     created_at timestamptz DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -19,21 +19,21 @@ CREATE TYPE chat_type AS ENUM (
 
 -- create chat table
 CREATE TABLE IF NOT EXISTS chats (
-    id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(128) UNIQUE NOT NULL,
+    id bigserial PRIMARY KEY,
+    name varchar(128) UNIQUE NOT NULL,
     type chat_type NOT NULL,
     -- use id list
-    members BIGINT [ ] NOT NULL,
+    members bigint [ ] NOT NULL,
     created_at timestamptz DEFAULT CURRENT_TIMESTAMP
 );
 
 -- create message table
 CREATE TABLE IF NOT EXISTS messages (
-    id BIGSERIAL PRIMARY KEY,
-    chat_id BIGINT NOT NULL REFERENCES chats(id),
-    sender_id BIGINT NOT NULL REFERENCES users(id),
-    content TEXT NOT NULL,
-    images TEXT [ ],
+    id bigserial PRIMARY KEY,
+    chat_id bigint NOT NULL REFERENCES chats(id),
+    sender_id bigint NOT NULL REFERENCES users(id),
+    content text NOT NULL,
+    images text [ ],
     created_at timestamptz DEFAULT CURRENT_TIMESTAMP
 );
 
