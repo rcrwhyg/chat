@@ -135,6 +135,10 @@ mod tests {
         let config = AppConfig::try_load()?;
         let (_tdb, pool) = get_test_pool(Some(&config.server.db_url)).await;
 
+        let users = Workspace::fetch_all_chat_users(1, &pool).await?;
+        assert_eq!(users.len(), 5);
+        // assert_eq!(users.clone().split_off(2), users);
+
         let ws = Workspace::create("test", 0, &pool).await?;
 
         let email = "rcrwhyg@sina.com";
