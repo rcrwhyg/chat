@@ -16,6 +16,9 @@ pub enum AppError {
     #[error("email already exists: {0}")]
     EmailAlreadyExists(String),
 
+    #[error("create chat error: {0}")]
+    CreateChatError(String),
+
     #[error("sql error: {0}")]
     SqlxError(#[from] sqlx::Error),
 
@@ -41,6 +44,7 @@ impl IntoResponse for AppError {
     fn into_response(self) -> Response {
         let status = match &self {
             Self::EmailAlreadyExists(_) => StatusCode::CONFLICT,
+            Self::CreateChatError(_) => StatusCode::BAD_REQUEST,
             Self::SqlxError(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Self::PasswordHashError(_) => StatusCode::UNPROCESSABLE_ENTITY,
             Self::JwtError(_) => StatusCode::FORBIDDEN,
