@@ -188,12 +188,10 @@ impl SigninUser {
 #[cfg(test)]
 mod tests {
 
-    use std::path::Path;
-
-    use anyhow::Result;
-    use sqlx_db_tester::TestPg;
-
     use super::*;
+    use anyhow::Result;
+
+    use crate::test_util::get_test_pool;
 
     #[test]
     fn test_hash_password_and_verify_should_work() -> Result<()> {
@@ -206,16 +204,12 @@ mod tests {
 
     #[tokio::test]
     async fn test_create_duplicate_user_should_fail() -> Result<()> {
-        let tdb = TestPg::new(
-            "postgres://alon:alon123456@localhost:5432/chat".to_string(),
-            Path::new("../migrations"),
-        );
-        let pool = tdb.get_pool().await;
-        let email = "rcrwhyg@sina.com";
-        let full_name = "Lyn Wong";
+        let (_tdb, pool) = get_test_pool(None).await;
+
+        let email = "tchen@acme.org";
+        let full_name = "Tyr Chen";
         let password = "hunter42";
         let input = CreateUser::new("Default Workspace", email, full_name, password);
-        User::create(&input, &pool).await?;
 
         let ret = User::create(&input, &pool).await;
         match ret {
@@ -232,11 +226,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_create_and_verify_user_should_work() -> Result<()> {
-        let tdb = TestPg::new(
-            "postgres://alon:alon123456@localhost:5432/chat".to_string(),
-            Path::new("../migrations"),
-        );
-        let pool = tdb.get_pool().await;
+        let (_tdb, pool) = get_test_pool(None).await;
+
         let email = "rcrwhyg@sina.com";
         let full_name = "Lyn Wong";
         let password = "hunter42";

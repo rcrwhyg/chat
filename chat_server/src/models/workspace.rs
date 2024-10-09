@@ -90,25 +90,24 @@ impl Workspace {
 
 #[cfg(test)]
 mod tests {
-    use crate::{models::CreateUser, test_util::get_test_pool, AppConfig, User};
+    use crate::{models::CreateUser, test_util::get_test_pool, User};
 
     use super::*;
     use anyhow::Result;
 
     #[tokio::test]
     async fn test_workspace_should_create_and_set_owner() -> Result<()> {
-        let config = AppConfig::try_load()?;
-        let (_tdb, pool) = get_test_pool(Some(&config.server.db_url)).await;
+        let (_tdb, pool) = get_test_pool(None).await;
+
+        let ws = Workspace::create("test", 0, &pool).await?;
+        assert_eq!(ws.name, "test");
 
         let email = "rcrwhyg@sina.com";
         let full_name = "Lyn Wong";
         let password = "hunter42";
-        let input = CreateUser::new("Default Workspace", email, full_name, password);
+        let input = CreateUser::new(&ws.name, email, full_name, password);
         let user = User::create(&input, &pool).await?;
-        let ws = Workspace::create("test", 0, &pool).await?;
-        assert_eq!(ws.name, "test");
 
-        let user = user.add_to_workspace(ws.id, &pool).await?;
         assert_eq!(user.ws_id, ws.id);
 
         let ws = ws.update_owner(user.id as _, &pool).await?;
@@ -119,21 +118,15 @@ mod tests {
 
     #[tokio::test]
     async fn test_workspace_should_find_by_name() -> Result<()> {
-        let config = AppConfig::try_load()?;
-        let (_tdb, pool) = get_test_pool(Some(&config.server.db_url)).await;
-
-        let _ws = Workspace::create("test", 0, &pool).await?;
-        let ws = Workspace::find_by_name("test", &pool).await?;
-
-        assert_eq!(ws.unwrap().name, "test");
-
+        let (_tdb, pool) = get_test_pool(None).await;
+        let ws = Workspace::find_by_name("acme", &pool).await?;
+        assert_eq!(ws.unwrap().name, "acme");
         Ok(())
     }
 
     #[tokio::test]
     async fn test_workspace_should_fetch_all_chat_users() -> Result<()> {
-        let config = AppConfig::try_load()?;
-        let (_tdb, pool) = get_test_pool(Some(&config.server.db_url)).await;
+        let (_tdb, pool) = get_test_pool(None).await;
 
         let users = Workspace::fetch_all_chat_users(1, &pool).await?;
         assert_eq!(users.len(), 5);

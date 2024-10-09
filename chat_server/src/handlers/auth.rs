@@ -80,21 +80,19 @@ mod tests {
         let config = AppConfig::try_load()?;
         let (_tdb, state) = AppState::try_new_for_test(config).await?;
 
-        let email = "rcrwhyg@sina.com";
-        let full_name = "Lyn Wong";
-        let password = "hunter42";
+        let email = "tchen@acme.org";
+        let full_name = "Tyr Chen";
+        let password = "123456";
         let input = CreateUser::new("Default Workspace", email, full_name, password);
 
-        signup_handler(State(state.clone()), Json(input.clone())).await?;
-
-        let ret = signup_handler(State(state.clone()), Json(input.clone()))
+        let ret = signup_handler(State(state), Json(input))
             .await
             .into_response();
         assert_eq!(ret.status(), StatusCode::CONFLICT);
 
         let body = ret.into_body().collect().await?.to_bytes();
         let ret: ErrorOutput = serde_json::from_slice(&body)?;
-        assert_eq!(ret.error, "email already exists: rcrwhyg@sina.com");
+        assert_eq!(ret.error, "email already exists: tchen@acme.org");
 
         Ok(())
     }
@@ -104,11 +102,8 @@ mod tests {
         let config = AppConfig::try_load()?;
         let (_tdb, state) = AppState::try_new_for_test(config).await?;
 
-        let email = "rcrwhyg@sina.com";
-        let full_name = "Lyn Wong";
-        let password = "hunter42";
-        let user = CreateUser::new("Default Workspace", email, full_name, password);
-        User::create(&user, &state.pool).await?;
+        let email = "tchen@acme.org";
+        let password = "123456";
         let input = SigninUser::new(email, password);
 
         let ret = signin_handler(State(state), Json(input))
