@@ -87,3 +87,19 @@ Authorization: Bearer {{token}}
 DELETE http://localhost:6688/api/chats/1
 Content-Type: application/json
 Authorization: Bearer {{token}}
+
+### upload files
+POST http://localhost:6688/api/upload
+Content-Type: multipart/form-data; boundary=MyBoundary
+Authorization: Bearer {{token}}
+
+--MyBoundary
+Content-Disposition: form-data; filename="006Mi9iRgy1gwj6z72ccdj30fm0feq56.jpg"
+Content-Type: application/octet-stream
+
+< C:\Users\velis\Desktop\biaoqingbao\006Mi9iRgy1gwj6z72ccdj30fm0feq56.jpg
+--MyBoundary
+Content-Disposition: form-data; filename="hello.txt"
+
+Hello, World!
+--MyBoundary--
