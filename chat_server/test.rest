@@ -20,6 +20,17 @@ Content-Type: application/json
     "password": "123456"
 }
 
+### signup user
+POST http://localhost:6688/api/signup
+Content-Type: application/json
+
+{
+    "workspace": "acme",
+    "full_name": "Bob",
+    "email": "bob@acme.com",
+    "password": "123456"
+}
+
 ### signin user (valid)
 # @name signin
 POST http://localhost:6688/api/signin
@@ -58,4 +69,21 @@ Authorization: Bearer {{token}}
 
 ### get user list
 GET http://localhost:6688/api/users
+Authorization: Bearer {{token}}
+
+
+### update chat
+PATCH http://localhost:6688/api/chats/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "type": "Group",
+    "name": "acme-updated",
+    "members": [1, 2, 3]
+}
+
+### delete chat
+DELETE http://localhost:6688/api/chats/1
+Content-Type: application/json
 Authorization: Bearer {{token}}

@@ -6,7 +6,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 
-pub use chat::CreateChat;
+pub use chat::{CreateChat, UpdateChat};
 pub use user::{CreateUser, SigninUser};
 
 #[derive(Debug, Clone, FromRow, Serialize, Deserialize, PartialEq)]
