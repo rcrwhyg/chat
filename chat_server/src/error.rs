@@ -22,6 +22,9 @@ pub enum AppError {
     #[error("update chat error: {0}")]
     UpdateChatError(String),
 
+    #[error("create message error: {0}")]
+    CreateMessageError(String),
+
     #[error("not found: {0}")]
     NotFound(String),
 
@@ -55,6 +58,7 @@ impl IntoResponse for AppError {
             Self::EmailAlreadyExists(_) => StatusCode::CONFLICT,
             Self::CreateChatError(_) => StatusCode::BAD_REQUEST,
             Self::UpdateChatError(_) => StatusCode::BAD_REQUEST,
+            Self::CreateMessageError(_) => StatusCode::BAD_REQUEST,
             Self::NotFound(_) => StatusCode::NOT_FOUND,
             Self::IoError(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Self::SqlxError(_) => StatusCode::INTERNAL_SERVER_ERROR,
