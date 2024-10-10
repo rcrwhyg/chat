@@ -94,12 +94,19 @@ Content-Type: multipart/form-data; boundary=MyBoundary
 Authorization: Bearer {{token}}
 
 --MyBoundary
-Content-Disposition: form-data; filename="006Mi9iRgy1gwj6z72ccdj30fm0feq56.jpg"
+# Content-Disposition: form-data; filename="006Mi9iRgy1gwj6z72ccdj30fm0feq56.jpg"
+Content-Disposition: form-data; filename="IMG_8812.jpeg"
 Content-Type: application/octet-stream
 
-< C:\Users\velis\Desktop\biaoqingbao\006Mi9iRgy1gwj6z72ccdj30fm0feq56.jpg
+# < C:\Users\velis\Desktop\biaoqingbao\006Mi9iRgy1gwj6z72ccdj30fm0feq56.jpg
+< /Users/alon/Pictures/IMG_8812.jpeg
 --MyBoundary
 Content-Disposition: form-data; filename="hello.txt"
+Content-Type: text/plain
 
 Hello, World!
 --MyBoundary--
+
+### get files
+GET http://localhost:6688/api/files/1/08e/151/881c920d87e043aacb890479ae0bef522f.jpeg
+Authorization: Bearer {{token}}
