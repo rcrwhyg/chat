@@ -1,8 +1,8 @@
 server:
   port: 6688
   db_url: postgres://alon:alon123456@localhost:5432/chat
-  # base_dir: /tmp/chat_server
-  base_dir: d:\tmp\chat_server
+  base_dir: /tmp/chat_server
+  # base_dir: d:\tmp\chat_server
 auth:
   sk: |
     -----BEGIN PRIVATE KEY-----
