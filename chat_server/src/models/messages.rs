@@ -39,6 +39,14 @@ impl AppState {
             }
         }
 
+        // verify if user_id is a member of chat_id
+        if !self.is_chat_member(chat_id, user_id).await? {
+            return Err(AppError::CreateMessageError(format!(
+                "User {} is not a member of chat {}",
+                user_id, chat_id
+            )));
+        }
+
         // create message
         let message: Message = sqlx::query_as(
             r#"
@@ -55,5 +63,58 @@ impl AppState {
         .await?;
 
         Ok(message)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use anyhow::Result;
+
+    #[tokio::test]
+    async fn test_create_message_should_work() -> Result<()> {
+        let (_tdb, state) = AppState::try_new_for_test().await?;
+
+        let input = CreateMessage {
+            content: "Hello World".to_string(),
+            files: vec![],
+        };
+
+        let message = state
+            .create_message(input, 1, 1)
+            .await
+            .expect("create message failed");
+        assert_eq!(message.content, "Hello World");
+
+        // invalid files should fail
+        let input = CreateMessage {
+            content: "Hello World".to_string(),
+            files: vec!["invalid_file".to_string()],
+        };
+        assert!(state.create_message(input, 1, 1).await.is_err());
+
+        // invalid files should work
+        let url = upload_dummy_file(&state)?;
+        let input = CreateMessage {
+            content: "Hello World".to_string(),
+            files: vec![url],
+        };
+        let message = state
+            .create_message(input, 1, 1)
+            .await
+            .expect("create message failed");
+        assert_eq!(message.content, "Hello World");
+        assert_eq!(message.files.len(), 1);
+
+        Ok(())
+    }
+
+    fn upload_dummy_file(state: &AppState) -> Result<String> {
+        let file = ChatFile::new(1, "dummy.txt", b"Hello World");
+        let file_path = file.path(&state.config.server.base_dir);
+        std::fs::create_dir_all(file_path.parent().expect("parent dir should exists"))?;
+        std::fs::write(&file_path, b"Hello World")?;
+
+        Ok(file.url())
     }
 }

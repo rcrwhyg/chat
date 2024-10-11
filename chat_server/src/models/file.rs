@@ -21,7 +21,7 @@ impl ChatFile {
     }
 
     pub fn url(&self) -> String {
-        format!("/files/{}/{}", self.ws_id, self.hash_to_path())
+        format!("/files/{}", self.hash_to_path())
     }
 
     pub fn path(&self, base_dir: &Path) -> PathBuf {
