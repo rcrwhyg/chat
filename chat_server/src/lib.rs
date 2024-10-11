@@ -114,9 +114,8 @@ mod test_util {
     impl AppState {
         #[allow(unused)]
         #[cfg(test)]
-        pub async fn try_new_for_test(
-            config: AppConfig,
-        ) -> Result<(sqlx_db_tester::TestPg, Self), AppError> {
+        pub async fn try_new_for_test() -> Result<(sqlx_db_tester::TestPg, Self), AppError> {
+            let config = AppConfig::try_load()?;
             let ek = EncodingKey::load(&config.auth.sk).context("Failed to load private key")?;
             let dk = DecodingKey::load(&config.auth.pk).context("Failed to load public key")?;
             // let post = config.server.db_url.rfind('/').expect("Invalid db_url");
