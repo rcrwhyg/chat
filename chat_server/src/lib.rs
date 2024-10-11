@@ -77,7 +77,7 @@ impl Deref for AppState {
 
 impl AppState {
     pub async fn try_new(config: AppConfig) -> Result<Self, AppError> {
-        fs::create_dir_all(&config.server.base_url)
+        fs::create_dir_all(&config.server.base_dir)
             .await
             .context("Create base url failed")?;
         let ek = EncodingKey::load(&config.auth.sk).context("Failed to load private key")?;

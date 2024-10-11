@@ -98,8 +98,8 @@ Authorization: Bearer {{token}}
 Content-Disposition: form-data; filename="IMG_8812.jpeg"
 Content-Type: application/octet-stream
 
-# < C:\Users\velis\Desktop\biaoqingbao\006Mi9iRgy1gwj6z72ccdj30fm0feq56.jpg
-< /Users/alon/Pictures/IMG_8812.jpeg
+< C:\Users\velis\Desktop\biaoqingbao\006Mi9iRgy1gwj6z72ccdj30fm0feq56.jpg
+# < /Users/alon/Pictures/IMG_8812.jpeg
 --MyBoundary
 Content-Disposition: form-data; filename="hello.txt"
 Content-Type: text/plain
@@ -108,5 +108,7 @@ Hello, World!
 --MyBoundary--
 
 ### get files
-GET http://localhost:6688/api/files/1/08e/151/881c920d87e043aacb890479ae0bef522f.jpeg
+# GET http://localhost:6688/api/files/1/08e/151/881c920d87e043aacb890479ae0bef522f.jpeg
+GET http://localhost:6688/api/files/1/dfb/d31/a22376042aef61b5df0c538dbc8f0031b9.jpeg
+# GET http://localhost:6688/api/files/1/0a0/a9f/2a6772942557ab5355d76af442f8f65e01.txt
 Authorization: Bearer {{token}}

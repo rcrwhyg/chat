@@ -19,7 +19,7 @@ pub struct AuthConfig {
 pub struct ServerConfig {
     pub port: u16,
     pub db_url: String,
-    pub base_url: PathBuf,
+    pub base_dir: PathBuf,
 }
 
 impl AppConfig {
