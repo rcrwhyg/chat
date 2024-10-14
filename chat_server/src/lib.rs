@@ -25,21 +25,19 @@ pub use error::{AppError, ErrorOutput};
 pub use models::*;
 
 #[derive(Debug, Clone)]
-pub(crate) struct AppState {
+pub struct AppState {
     pub(crate) inner: Arc<AppStateInner>,
 }
 
 #[allow(unused)]
-pub(crate) struct AppStateInner {
+pub struct AppStateInner {
     pub(crate) config: AppConfig,
     pub(crate) ek: EncodingKey,
     pub(crate) dk: DecodingKey,
     pub(crate) pool: PgPool,
 }
 
-pub async fn get_router(config: AppConfig) -> Result<Router, AppError> {
-    let state = AppState::try_new(config).await?;
-
+pub async fn get_router(state: AppState) -> Result<Router, AppError> {
     let chat = Router::new()
         .route(
             "/:id",
@@ -124,8 +122,6 @@ mod test_util {
     use std::path::Path;
 
     impl AppState {
-        #[allow(unused)]
-        #[cfg(test)]
         pub async fn try_new_for_test() -> Result<(sqlx_db_tester::TestPg, Self), AppError> {
             let config = AppConfig::try_load()?;
             let ek = EncodingKey::load(&config.auth.sk).context("Failed to load private key")?;
@@ -147,7 +143,6 @@ mod test_util {
         }
     }
 
-    #[allow(unused)]
     pub async fn get_test_pool(url: Option<&str>) -> (TestPg, PgPool) {
         let url = match url {
             Some(url) => url.to_string(),

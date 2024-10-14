@@ -1,0 +1,14 @@
+server:
+  port: 6688
+  db_url: postgres://alon:alon123456@localhost:5432/chat
+  # base_dir: /tmp/chat_server
+  base_dir: d:\tmp\chat_server
+auth:
+  sk: |
+    -----BEGIN PRIVATE KEY-----
+    MC4CAQAwBQYDK2VwBCIEIPlRJHeq66It5Ju+FHaTUfu0ijun67yJq/1fj+3Y7myp
+    -----END PRIVATE KEY-----
+  pk: |
+    -----BEGIN PUBLIC KEY-----
+    MCowBQYDK2VwAyEARUeoqS5E3CD4NGYaNct5uWJrd8Np+46vG07/3WAV0Lw=
+    -----END PUBLIC KEY-----
