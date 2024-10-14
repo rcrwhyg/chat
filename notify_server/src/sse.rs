@@ -10,6 +10,7 @@ use futures::Stream;
 use std::{convert::Infallible, time::Duration};
 use tokio::sync::broadcast;
 use tokio_stream::{wrappers::BroadcastStream, StreamExt};
+use tracing::info;
 
 use crate::{AppEvent, AppState};
 
@@ -33,6 +34,7 @@ pub(crate) async fn sse_handler(
         state.users.insert(user_id as _, tx);
         rx
     };
+    info!("User {} subscribed", user_id);
 
     let stream = BroadcastStream::new(rx).filter_map(|v| v.ok()).map(|v| {
         let name = match v.as_ref() {

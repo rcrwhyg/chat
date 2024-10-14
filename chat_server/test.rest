@@ -5,7 +5,7 @@ Content-Type: application/json
 {
     "workspace": "acme",
     "full_name": "test",
-    "email": "test@acme.com",
+    "email": "tchen@acme.org",
     "password": "123456"
 }
 
@@ -16,7 +16,7 @@ Content-Type: application/json
 {
     "workspace": "acme",
     "full_name": "Alice",
-    "email": "alice@acme.com",
+    "email": "alice@acme.org",
     "password": "123456"
 }
 
@@ -27,7 +27,7 @@ Content-Type: application/json
 {
     "workspace": "acme",
     "full_name": "Bob",
-    "email": "bob@acme.com",
+    "email": "bob@acme.org",
     "password": "123456"
 }
 
@@ -37,7 +37,7 @@ POST http://localhost:6688/api/signin
 Content-Type: application/json
 
 {
-    "email": "test@acme.com",
+    "email": "tchen@acme.org",
     "password": "123456"
 }
 

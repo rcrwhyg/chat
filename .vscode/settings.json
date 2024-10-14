@@ -5,6 +5,7 @@
         "fullname",
         "genpkey",
         "Hasher",
+        "notif",
         "oneshot",
         "pkey",
         "pubout",
