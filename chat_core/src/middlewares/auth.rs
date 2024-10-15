@@ -101,7 +101,7 @@ mod tests {
         let dk = DecodingKey::load(decoding_pem)?;
         let state = AppState(Arc::new(AppStateInner { ek, dk }));
 
-        let user = User::new(1, "test@example.com".to_string(), "password".to_string());
+        let user = User::new(1, "test@example.com", "password");
         let token = state.0.ek.sign(user)?;
 
         let app = Router::new()

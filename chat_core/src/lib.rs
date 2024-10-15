@@ -5,10 +5,12 @@ pub mod middlewares;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
+use utoipa::ToSchema;
 
 pub use utils::*;
 
-#[derive(Debug, Clone, FromRow, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, FromRow, ToSchema, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
 pub struct User {
     pub id: i64,
     pub ws_id: i64,
@@ -20,7 +22,8 @@ pub struct User {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, FromRow, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, FromRow, ToSchema, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
 pub struct Workspace {
     pub id: i64,
     pub name: String,
@@ -28,52 +31,63 @@ pub struct Workspace {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, FromRow, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, FromRow, ToSchema, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
 pub struct ChatUser {
     pub id: i64,
+    #[serde(alias = "fullName")]
     pub full_name: String,
     pub email: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, PartialOrd, sqlx::Type)]
+#[derive(Debug, Clone, ToSchema, Serialize, Deserialize, PartialEq, PartialOrd, sqlx::Type)]
 #[sqlx(type_name = "chat_type", rename_all = "snake_case")]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all(serialize = "camelCase"))]
 pub enum ChatType {
+    #[serde(alias = "single", alias = "Single")]
     Single,
+    #[serde(alias = "group", alias = "Group")]
     Group,
+    #[serde(alias = "private_channel", alias = "privateChannel")]
     PrivateChannel,
+    #[serde(alias = "public_channel", alias = "publicChannel")]
     PublicChannel,
 }
 
-#[derive(Debug, Clone, FromRow, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, FromRow, ToSchema, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all(serialize = "camelCase"))]
 pub struct Chat {
     pub id: i64,
+    #[serde(alias = "wsId")]
     pub ws_id: i64,
     pub name: Option<String>,
     pub r#type: ChatType,
     pub members: Vec<i64>,
+    #[serde(alias = "createdAt")]
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, FromRow, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, FromRow, ToSchema, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all(serialize = "camelCase"))]
 pub struct Message {
     pub id: i64,
+    #[serde(alias = "chatId")]
     pub chat_id: i64,
+    #[serde(alias = "senderId")]
     pub sender_id: i64,
     pub content: String,
     pub files: Vec<String>,
+    #[serde(alias = "createdAt")]
     pub created_at: DateTime<Utc>,
 }
 
-#[cfg(test)]
 impl User {
-    pub fn new(id: i64, full_name: String, email: String) -> Self {
-        use chrono::Utc;
+    pub fn new(id: i64, full_name: &str, email: &str) -> Self {
         Self {
             id,
             ws_id: 0,
-            full_name,
-            email,
+            full_name: full_name.to_string(),
+            email: email.to_string(),
             password_hash: None,
             created_at: Utc::now(),
         }

@@ -4,12 +4,27 @@ use axum::{
     response::IntoResponse,
     Extension, Json,
 };
-use chat_core::User;
+use chat_core::{Message, User};
 use tokio::fs::{self};
 use tracing::{info, warn};
 
-use crate::{AppError, AppState, ChatFile, CreateMessage, ListMessages};
+use crate::{AppError, AppState, ChatFile, CreateMessage, ErrorOutput, ListMessages};
 
+/// Send a new message in the chat.
+#[utoipa::path(
+    post,
+    path = "/api/chats/{id}",
+    params(
+        ("id" = u64, Path, description = "Chat ID")
+    ),
+    responses(
+        (status = 201, description = "Message send", body = Message),
+        (status = 400, description = "Invalid input", body = ErrorOutput),
+    ),
+    security(
+        ("token" = [])
+    )
+)]
 pub(crate) async fn send_message_handler(
     Extension(user): Extension<User>,
     State(state): State<AppState>,
@@ -20,6 +35,22 @@ pub(crate) async fn send_message_handler(
     Ok((StatusCode::CREATED, Json(msg)))
 }
 
+/// List all messages in the chat.
+#[utoipa::path(
+    post,
+    path = "/api/chats/{id}/messages",
+    params(
+        ("id" = u64, Path, description = "Chat ID"),
+        ListMessages
+    ),
+    responses(
+        (status = 200, description = "List of messages", body = Vec<Message>),
+        (status = 400, description = "Invalid input", body = ErrorOutput),
+    ),
+    security(
+        ("token" = [])
+    )
+)]
 pub(crate) async fn list_message_handler(
     State(state): State<AppState>,
     Path(id): Path<u64>,
