@@ -4,7 +4,7 @@ Content-Type: application/json
 
 {
     "workspace": "acme",
-    "full_name": "tchen",
+    "full_name": "Tyr Chen",
     "email": "tchen@acme.org",
     "password": "123456"
 }
@@ -15,7 +15,7 @@ Content-Type: application/json
 
 {
     "workspace": "acme",
-    "full_name": "Alice",
+    "full_name": "Alice Chen",
     "email": "alice@acme.org",
     "password": "123456"
 }
@@ -26,12 +26,21 @@ Content-Type: application/json
 
 {
     "workspace": "acme",
-    "full_name": "Bob",
+    "full_name": "Bob Hua",
     "email": "bob@acme.org",
     "password": "123456"
 }
 
 ### signin user (valid)
+POST http://localhost:6688/api/signin
+Content-Type: application/json
+
+{
+    "email": "tchen@acme.org",
+    "password": "a123456"
+}
+
+### signin user
 # @name signin
 POST http://localhost:6688/api/signin
 Content-Type: application/json
@@ -43,24 +52,58 @@ Content-Type: application/json
 
 @token = {{signin.response.body.token}}
 
+### signin user
+# @name signin1
+POST http://localhost:6688/api/signin
+Content-Type: application/json
+
+{
+    "email": "bob@acme.org",
+    "password": "123456"
+}
+
+@token1 = {{signin1.response.body.token}}
+
 ### create chat
 POST http://localhost:6688/api/chats
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-    "name": "acme",
+    "name": "project X",
     "members": [1, 2],
     "public": false
 }
 
-### signin user (invalid)
-POST http://localhost:6688/api/signin
+### create direct chat
+POST http://localhost:6688/api/chats
 Content-Type: application/json
+Authorization: Bearer {{token}}
 
 {
-    "email": "test1@acme.com",
-    "password": "123456"
+    "members": [1, 2],
+    "public": false
+}
+
+### create chat without me
+POST http://localhost:6688/api/chats
+Content-Type: application/json
+Authorization: Bearer {{token1}}
+
+{
+    "name": "project Y",
+    "members": [2, 3],
+    "public": false
+}
+
+### create direct chat without me
+POST http://localhost:6688/api/chats
+Content-Type: application/json
+Authorization: Bearer {{token1}}
+
+{
+    "members": [2, 3],
+    "public": false
 }
 
 ### get chat list

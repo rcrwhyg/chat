@@ -20,13 +20,31 @@ pub struct UpdateChat {
 
 #[allow(dead_code)]
 impl AppState {
-    pub async fn create_chat(&self, input: CreateChat, ws_id: u64) -> Result<Chat, AppError> {
+    pub async fn create_chat(
+        &self,
+        input: CreateChat,
+        user_id: u64,
+        ws_id: u64,
+    ) -> Result<Chat, AppError> {
         let len = input.members.len();
         if len < 2 {
             return Err(AppError::CreateChatError(format!(
                 "Members must be at least 2, but got {}",
                 len
             )));
+        }
+        // if user id is not in members, reject
+        if !input.members.contains(&(user_id as i64)) {
+            return Err(AppError::CreateChatError(
+                "User must be in the chat members".to_string(),
+            ));
+        }
+        if let Some(name) = &input.name {
+            if name.len() < 3 {
+                return Err(AppError::CreateChatError(
+                    "Chat name must have at least 3 characters".to_string(),
+                ));
+            }
         }
         if len > 8 && input.name.is_none() {
             return Err(AppError::CreateChatError(
@@ -71,15 +89,16 @@ impl AppState {
         Ok(chat)
     }
 
-    pub async fn fetch_chats(&self, ws_id: u64) -> Result<Vec<Chat>, AppError> {
+    pub async fn fetch_chats(&self, user_id: u64, ws_id: u64) -> Result<Vec<Chat>, AppError> {
         let chats = sqlx::query_as(
             r#"
             SELECT id, ws_id, name, type, members, created_at
             FROM chats
-            WHERE ws_id = $1
+            WHERE ws_id = $1 and $2 = ANY(members)
             "#,
         )
         .bind(ws_id as i64)
+        .bind(user_id as i64)
         .fetch_all(&self.pool)
         .await?;
 
@@ -223,7 +242,7 @@ mod tests {
 
         let input = CreateChat::new("", &[1, 2], false);
         let chat = state
-            .create_chat(input, 1)
+            .create_chat(input, 1, 1)
             .await
             .expect("Failed to create chat");
 
@@ -240,7 +259,7 @@ mod tests {
 
         let input = CreateChat::new("general", &[1, 2, 3, 4], true);
         let chat = state
-            .create_chat(input, 1)
+            .create_chat(input, 1, 1)
             .await
             .expect("Failed to create chat");
 
@@ -274,7 +293,7 @@ mod tests {
         let (_tdb, state) = AppState::try_new_for_test().await?;
 
         let chats = state
-            .fetch_chats(1)
+            .fetch_chats(1, 1)
             .await
             .expect("Failed to fetch all chats");
 
@@ -289,7 +308,7 @@ mod tests {
 
         let input = CreateChat::new("test_update_single", &[1, 2], false);
         let chat1 = state
-            .create_chat(input, 1)
+            .create_chat(input, 1, 1)
             .await
             .expect("Failed to create chat");
 
@@ -320,7 +339,7 @@ mod tests {
 
         let input = CreateChat::new("test_delete", &[1, 2], false);
         let chat = state
-            .create_chat(input, 1)
+            .create_chat(input, 1, 1)
             .await
             .expect("Failed to create chat");
 
